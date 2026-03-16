@@ -8,12 +8,17 @@ Un bot de WhatsApp robusto y listo para producción que envía recordatorios aut
 - ✅ Reconexión automática ante caídas de conexión
 - ✅ Scheduler interno (sin dependencia de cron del sistema)
 - ✅ Base de datos SQLite para persistencia
-- ✅ Comandos administrativos por WhatsApp
+- ✅ Comandos administrativos por WhatsApp (soporta `/` y `!`)
+- ✅ Comando simplificado: `!agregar 15/05 Juan Pérez`
+- ✅ Ver cumpleaños por fecha con indicador de pasados/próximos (`!ver-cumples`)
+- ✅ **Interfaz web moderna para gestión visual** (http://localhost:3000)
+- ✅ API REST completa para integraciones
 - ✅ Configuración personalizada por grupo (hora de envío, timezone, plantillas)
-- ✅ Plantillas de mensaje customizables
+- ✅ Plantillas de mensaje customizables con emoji de robot (🤖)
 - ✅ Evita envíos duplicados
 - ✅ Logging completo (consola + archivo)
 - ✅ Listo para VPS/producción con PM2
+- ✅ Soporte completo para Docker
 - ✅ Instalador automático e interactivo
 - ✅ Importar/exportar cumpleaños en JSON
 
@@ -36,6 +41,15 @@ El instalador te guiará paso a paso:
 - ✅ Muestra el QR para vincular WhatsApp
 
 **👉 [Ver guía completa del instalador](INSTALL_GUIDE.md)**
+
+## 📚 Documentación
+
+- **[Guía de Instalación](INSTALL_GUIDE.md)** - Instalador automático paso a paso
+- **[Guía de Docker](DOCKER_GUIDE.md)** - Configuración y despliegue con Docker
+- **[Guía de Interfaz Web](WEB_GUIDE.md)** - Panel web y API REST
+- **[Ejemplos de Comandos](COMMANDS_EXAMPLES.md)** - Ejemplos prácticos de todos los comandos
+- **[Guía Rápida](QUICKSTART.md)** - Inicio rápido en 5 minutos
+- **[Arquitectura](ARCHITECTURE.md)** - Arquitectura técnica del proyecto
 
 ---
 
@@ -170,18 +184,29 @@ Pero esto no reiniciará automáticamente el bot si falla o si reinicias el serv
 
 Todos los comandos deben ser ejecutados por números admin configurados en `.env`.
 
+**Nota:** Puedes usar `/` o `!` como prefijo (ej: `/ping` o `!ping`)
+
 ### Consultas
 
-- `/ping` - Verificar si el bot está activo
+- `!ping` o `/ping` - Verificar si el bot está activo
+- `!status` o `/status` - Ver estado del sistema y estadísticas
+- `!ver-cumples` - Ver cumpleaños ordenados por fecha (✅ = ya pasó, ⏳ = próximo)
 - `/help` - Ver lista de comandos disponibles
 - `/listar` - Listar todos los cumpleaños registrados
 - `/proximos` - Mostrar los próximos 10 cumpleaños
 - `/grupos` - Listar grupos con cumpleaños registrados
-- `/status` - Ver estado del sistema y estadísticas
 
 ### Gestión de Cumpleaños
 
-#### Agregar cumpleaños
+#### Agregar cumpleaños - Formato Rápido ⚡
+
+```
+!agregar 15/05 Juan Pérez
+```
+
+Este formato automáticamente usa el grupo donde envías el comando.
+
+#### Agregar cumpleaños - Formato Completo
 
 ```
 /agregar Juan Pérez|1990-05-15|5491112345678|Familia
@@ -391,6 +416,52 @@ Configuración personalizada por grupo.
    - Si el cumpleaños ya fue enviado este año
 4. Si cumple todas las condiciones, envía el mensaje
 5. Registra el envío en `sent_logs` para evitar duplicados
+
+## 🌐 Interfaz Web
+
+El bot incluye una interfaz web moderna para gestionar cumpleaños visualmente.
+
+### Acceso
+
+Una vez iniciado el bot, accede a:
+
+```
+http://localhost:3000
+```
+
+### Características
+
+- ✅ Ver todos los cumpleaños en una lista ordenada
+- ✅ Agregar cumpleaños con formulario visual
+- ✅ Editar cumpleaños existentes
+- ✅ Eliminar cumpleaños con confirmación
+- ✅ Activar/desactivar cumpleaños
+- ✅ Ver estado (Activo/Inactivo) con badges de colores
+- ✅ Interfaz responsive (funciona en móviles)
+- ✅ Actualización automática cada 30 segundos
+
+### API REST
+
+La interfaz web expone una API REST completa:
+
+- `GET /api/birthdays` - Obtener todos los cumpleaños
+- `POST /api/birthdays` - Agregar cumpleaños
+- `PUT /api/birthdays/:id` - Actualizar cumpleaños
+- `DELETE /api/birthdays/:id` - Eliminar cumpleaños
+- `PATCH /api/birthdays/:id/toggle` - Activar/desactivar
+- `GET /api/groups` - Obtener grupos
+- `POST /api/groups/config` - Configurar grupo
+
+**👉 [Ver guía completa de la interfaz web](WEB_GUIDE.md)**
+
+### Configuración
+
+Por defecto, la interfaz está habilitada en el puerto 3000. Para cambiar:
+
+```env
+WEB_PORT=8080
+WEB_ENABLED=true
+```
 
 ## 🔧 Troubleshooting
 

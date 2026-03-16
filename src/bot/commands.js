@@ -9,7 +9,11 @@ import logger from '../utils/logger.js';
 export async function parseCommand(sock, message, text) {
   const replyJid = message.key.remoteJid;
   const args = text.trim().split(/\s+/);
-  const command = args[0].toLowerCase();
+  // Normalizar comando: convertir ! a / para consistencia interna
+  let command = args[0].toLowerCase();
+  if (command.startsWith('!')) {
+    command = command.replace('!', '/');
+  }
 
   try {
     let response = '';
@@ -31,8 +35,12 @@ export async function parseCommand(sock, message, text) {
         response = await handleProximos();
         break;
 
+      case '/ver-cumples':
+        response = await handleVerCumples();
+        break;
+
       case '/agregar':
-        response = await handleAgregar(args.slice(1).join(' '));
+        response = await handleAgregarSmart(args.slice(1).join(' '), replyJid);
         break;
 
       case '/eliminar':
@@ -76,7 +84,7 @@ export async function parseCommand(sock, message, text) {
         break;
 
       default:
-        response = `❓ Comando desconocido: ${command}\n\nUsa /help para ver los comandos disponibles.`;
+        response = `❓ Comando desconocido: ${command}\n\nUsa /help o !help para ver los comandos disponibles.`;
     }
 
     if (response) {
@@ -98,15 +106,19 @@ async function handlePing() {
 async function handleHelp() {
   return `🤖 *Comandos del Bot de Cumpleaños*
 
+_Nota: Puedes usar / o ! para los comandos_
+
 📋 *Consultas:*
-/ping - Verificar si el bot está activo
+!ping o /ping - Verificar si el bot está activo
+!ver-cumples - Ver cumpleaños ordenados por fecha
 /listar - Listar todos los cumpleaños
 /proximos - Mostrar próximos cumpleaños
 /grupos - Listar grupos conocidos
-/status - Estado del sistema
+!status o /status - Estado del sistema
 
 ➕ *Gestión de Cumpleaños:*
-/agregar Nombre|YYYY-MM-DD|groupId|groupName
+!agregar 15/05 Juan Pérez - Agregar rápido (usa grupo actual)
+/agregar Nombre|YYYY-MM-DD|groupId|groupName - Agregar completo
 /eliminar <id>
 /editar <id> <campo> <valor>
 /activar <id>
@@ -125,7 +137,8 @@ async function handleHelp() {
 ℹ️ *Notas:*
 - Campos editables: name, birth_date, group_id, group_name, message_template, enabled
 - sendHour: 0-23 (hora del día)
-- timezone: ej. America/Argentina/Cordoba`;
+- timezone: ej. America/Argentina/Cordoba
+- En !ver-cumples: ✅ = ya pasó, ⏳ = próximo`;
 }
 
 async function handleListar() {
@@ -168,7 +181,111 @@ async function handleProximos() {
   return response;
 }
 
-async function handleAgregar(input) {
+async function handleVerCumples() {
+  const birthdays = birthdayService.listBirthdays(true);
+
+  if (birthdays.length === 0) {
+    return '📅 No hay cumpleaños registrados.';
+  }
+
+  // Ordenar por mes y día
+  const sortedBirthdays = birthdays.sort((a, b) => {
+    const [yearA, monthA, dayA] = a.birth_date.split('-');
+    const [yearB, monthB, dayB] = b.birth_date.split('-');
+
+    if (monthA !== monthB) {
+      return parseInt(monthA) - parseInt(monthB);
+    }
+    return parseInt(dayA) - parseInt(dayB);
+  });
+
+  // Obtener fecha actual
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  let response = '📅 *Cumpleaños por Fecha:*\n\n';
+
+  for (const b of sortedBirthdays) {
+    const [year, month, day] = b.birth_date.split('-');
+    const birthdayThisYear = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+    const hasPassed = birthdayThisYear < now;
+    const statusIcon = hasPassed ? '✅' : '⏳';
+
+    response += `${statusIcon} *${b.name}* - ${day}/${month}\n`;
+    response += `   👥 ${b.group_name}\n`;
+    if (hasPassed) {
+      response += `   _Ya pasó este año_\n`;
+    } else {
+      const days = getDaysUntilBirthday(b.birth_date);
+      const daysText = days === 0 ? '¡HOY!' : days === 1 ? 'Mañana' : `En ${days} días`;
+      response += `   _${daysText}_\n`;
+    }
+    response += '\n';
+  }
+
+  return response;
+}
+
+async function handleAgregarSmart(input, remoteJid) {
+  input = sanitizeInput(input);
+
+  // Detectar formato: si tiene | es formato completo, sino es formato simple
+  if (input.includes('|')) {
+    // Formato completo: Nombre|YYYY-MM-DD|groupId|groupName
+    return await handleAgregarCompleto(input);
+  } else {
+    // Formato simple: dd/mm Nombre
+    return await handleAgregarSimple(input, remoteJid);
+  }
+}
+
+async function handleAgregarSimple(input, remoteJid) {
+  // Formato: dd/mm Nombre o dd-mm Nombre
+  const match = input.match(/^(\d{1,2})[\/\-](\d{1,2})\s+(.+)$/);
+
+  if (!match) {
+    return '❌ Formato incorrecto.\n\n*Formato simple:*\n!agregar 15/05 Juan Pérez\n\n*Formato completo:*\n/agregar Juan Pérez|1990-05-15|groupId|Familia';
+  }
+
+  const day = match[1].padStart(2, '0');
+  const month = match[2].padStart(2, '0');
+  const name = match[3].trim();
+
+  // Validar día y mes
+  const dayNum = parseInt(day);
+  const monthNum = parseInt(month);
+
+  if (monthNum < 1 || monthNum > 12) {
+    return '❌ Mes inválido. Debe estar entre 01 y 12.';
+  }
+
+  if (dayNum < 1 || dayNum > 31) {
+    return '❌ Día inválido. Debe estar entre 01 y 31.';
+  }
+
+  // Usar año 2000 como predeterminado (solo importa día/mes)
+  const birth_date = `2000-${month}-${day}`;
+
+  // Obtener group_id del chat actual
+  let group_id = remoteJid.split('@')[0];
+  let group_name = 'Sin grupo';
+
+  // Si es un grupo, usar su nombre
+  if (remoteJid.endsWith('@g.us')) {
+    group_name = 'Grupo';
+  }
+
+  const birthday = birthdayService.addBirthday({
+    name,
+    birth_date,
+    group_id,
+    group_name
+  });
+
+  return `✅ Cumpleaños agregado!\n\n*Nombre:* ${name}\n*Fecha:* ${day}/${month}\n*Grupo ID:* ${group_id}\n*ID:* ${birthday.id}\n\n_Tip: Configura el grupo con /grupo-config_`;
+}
+
+async function handleAgregarCompleto(input) {
   const parts = input.split('|').map(p => sanitizeInput(p));
 
   if (parts.length !== 4) {

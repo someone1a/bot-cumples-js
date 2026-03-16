@@ -1,7 +1,7 @@
 {
   "name": "whatsapp-birthday-bot",
-  "version": "1.0.0",
-  "description": "WhatsApp bot for birthday reminders using Baileys",
+  "version": "1.2.0",
+  "description": "WhatsApp bot for birthday reminders using Baileys with web interface",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -25,7 +25,9 @@
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.9",
     "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
     "node-cron": "^3.0.3",
     "pino": "^9.5.0",
     "pino-pretty": "^13.0.0",

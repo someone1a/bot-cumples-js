@@ -1,5 +1,99 @@
 # Changelog
 
+## [1.2.0] - 2024-03-16
+
+### Nuevas Características
+
+- ✅ **Interfaz Web Moderna**
+  - Panel de control visual en `http://localhost:3000`
+  - Gestión completa de cumpleaños desde el navegador
+  - Agregar, editar, eliminar y activar/desactivar
+  - Diseño responsive para móviles y tablets
+  - Actualización automática cada 30 segundos
+
+- ✅ **API REST Completa**
+  - 8 endpoints para gestión de cumpleaños y grupos
+  - Documentación completa en WEB_GUIDE.md
+  - Health check endpoint
+  - CORS habilitado para integraciones
+
+- ✅ **Comando `!ver-cumples`**
+  - Ver cumpleaños ordenados por fecha
+  - Indicadores visuales (✅ = ya pasó, ⏳ = próximo)
+  - Muestra días restantes para próximos cumpleaños
+
+- ✅ **Comando `!agregar` Simplificado**
+  - Formato rápido: `!agregar 15/05 Juan Pérez`
+  - Detección automática del grupo actual
+  - Soporta `/` y `-` como separadores
+
+- ✅ **Mensajes con Emoji de Robot**
+  - Todos los mensajes comienzan con 🤖 por defecto
+  - Personalizable vía `message_template`
+
+### Mejoras
+
+- 🔧 Soporte completo para prefijos `/` y `!` en todos los comandos
+- 📝 Comando `/help` actualizado con nuevas funcionalidades
+- 🎨 Mejores indicadores visuales en todos los comandos
+- 📖 Documentación expandida con WEB_GUIDE.md
+
+### Archivos Nuevos
+
+- `src/web/server.js` - Servidor Express con API REST
+- `src/web/public/index.html` - Interfaz web moderna
+- `WEB_GUIDE.md` - Guía completa de la interfaz web
+- `RELEASE_NOTES_v1.2.0.md` - Notas detalladas de la versión
+
+### Archivos Modificados
+
+- `src/index.js` - Integración del servidor web
+- `src/config/env.js` - Nuevas variables WEB_ENABLED y WEB_PORT
+- `src/bot/commands.js` - Nuevos comandos y mejoras
+- `.env.example` - Variables de configuración web
+- `package.json` - Versión 1.2.0, dependencias express y cors
+- `README.md` - Documentación completa actualizada
+
+### Configuración
+
+Nuevas variables de entorno:
+```env
+WEB_ENABLED=true
+WEB_PORT=3000
+```
+
+## [1.1.0] - 2024-03-16
+
+### Nuevas Características
+
+- ✅ **Soporte completo para Docker**
+  - Agregado `Dockerfile` optimizado con Alpine Linux
+  - Agregado `docker-compose.yml` para despliegue fácil
+  - Agregado `.dockerignore` para builds optimizados
+  - Logs rotativos automáticos en Docker
+
+- ✅ **Soporte para comandos con `!`**
+  - Ahora puedes usar `/ping` o `!ping`
+  - Todos los comandos soportan ambos prefijos (`/` y `!`)
+  - Útil para compatibilidad con otros bots
+
+- ✅ **Documentación expandida**
+  - Agregada [DOCKER_GUIDE.md](DOCKER_GUIDE.md) con guía completa de Docker
+  - Agregada [COMMANDS_EXAMPLES.md](COMMANDS_EXAMPLES.md) con ejemplos prácticos
+  - Actualizado README con mejores referencias
+
+### Mejoras
+
+- 🔧 Mejorado `install.sh` - solucionados errores de sintaxis bash
+- 🔧 Mejorado `.gitignore` para excluir archivos de storage
+- 📝 Actualizado `/help` para mencionar soporte de `!`
+- 📝 Actualizado README con sección de documentación
+
+### Correcciones
+
+- 🐛 Corregidos errores de sintaxis en `install.sh` línea 251
+- 🐛 Corregida validación de comandos en `handlers.js`
+
 ## [1.0.0] - 2024-03-15
 
 ### Lanzamiento Inicial

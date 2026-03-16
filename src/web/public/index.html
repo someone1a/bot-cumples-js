@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 WhatsApp Birthday Bot - Panel de Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .birthday-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .birthday-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .birthday-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .birthday-info {
+            flex: 1;
+        }
+
+        .birthday-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .birthday-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .birthday-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+        }
+
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-toggle {
+            background: #28a745;
+        }
+
+        .btn-toggle:hover {
+            background: #218838;
+        }
+
+        .btn-toggle.disabled {
+            background: #6c757d;
+        }
+
+        .btn-toggle.disabled:hover {
+            background: #5a6268;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .quick-format {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #004085;
+        }
+
+        .quick-format strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 WhatsApp Birthday Bot</h1>
+            <p class="subtitle">Panel de Control - Gestión de Cumpleaños</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Formulario -->
+            <div class="card">
+                <h2>➕ Agregar Cumpleaños</h2>
+
+                <div class="quick-format">
+                    <strong>💡 Formato rápido desde WhatsApp:</strong>
+                    !agregar 15/05 Juan Pérez
+                </div>
+
+                <div id="alert" class="alert"></div>
+
+                <form id="birthdayForm">
+                    <div class="form-group">
+                        <label for="name">Nombre *</label>
+                        <input type="text" id="name" required placeholder="Juan Pérez">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birth_date">Fecha de Nacimiento *</label>
+                        <input type="date" id="birth_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="group_id">Group ID *</label>
+                        <input type="text" id="group_id" required placeholder="5491112345678">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="group_name">Nombre del Grupo *</label>
+                        <input type="text" id="group_name" required placeholder="Familia">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message_template">Mensaje Personalizado (opcional)</label>
+                        <textarea id="message_template" placeholder="🤖 ¡Feliz cumpleaños {name}! 🎂🎉 Que tengas un día maravilloso!"></textarea>
+                    </div>
+
+                    <button type="submit">Agregar Cumpleaños</button>
+                </form>
+            </div>
+
+            <!-- Lista de cumpleaños -->
+            <div class="card">
+                <h2>📅 Lista de Cumpleaños <span id="birthdayCount" style="color: #6c757d; font-size: 1rem;">(0)</span></h2>
+
+                <div id="birthdayList" class="birthday-list">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let editingId = null;
+
+        // Cargar cumpleaños al inicio
+        loadBirthdays();
+
+        // Manejar envío del formulario
+        document.getElementById('birthdayForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                birth_date: document.getElementById('birth_date').value,
+                group_id: document.getElementById('group_id').value.trim(),
+                group_name: document.getElementById('group_name').value.trim(),
+                message_template: document.getElementById('message_template').value.trim() || null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/birthdays`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Cumpleaños agregado correctamente', 'success');
+                    document.getElementById('birthdayForm').reset();
+                    loadBirthdays();
+                } else {
+                    showAlert('❌ Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error al agregar cumpleaños: ' + error.message, 'error');
+            }
+        });
+
+        async function loadBirthdays() {
+            try {
+                const response = await fetch(`${API_URL}/birthdays`);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayBirthdays(result.data);
+                } else {
+                    showAlert('❌ Error al cargar cumpleaños: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error al cargar cumpleaños: ' + error.message, 'error');
+            }
+        }
+
+        function displayBirthdays(birthdays) {
+            const listContainer = document.getElementById('birthdayList');
+            const countElement = document.getElementById('birthdayCount');
+
+            countElement.textContent = `(${birthdays.length})`;
+
+            if (birthdays.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎂</div>
+                        <p>No hay cumpleaños registrados</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Agrega el primero usando el formulario</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar por mes y día
+            birthdays.sort((a, b) => {
+                const [yearA, monthA, dayA] = a.birth_date.split('-');
+                const [yearB, monthB, dayB] = b.birth_date.split('-');
+                if (monthA !== monthB) return parseInt(monthA) - parseInt(monthB);
+                return parseInt(dayA) - parseInt(dayB);
+            });
+
+            listContainer.innerHTML = birthdays.map(birthday => {
+                const [year, month, day] = birthday.birth_date.split('-');
+                const statusClass = birthday.enabled ? 'status-active' : 'status-inactive';
+                const statusText = birthday.enabled ? 'Activo' : 'Inactivo';
+                const toggleClass = birthday.enabled ? 'btn-toggle' : 'btn-toggle disabled';
+                const toggleText = birthday.enabled ? '✓' : '✗';
+
+                return `
+                    <div class="birthday-item">
+                        <div class="birthday-info">
+                            <div class="birthday-name">
+                                ${birthday.name}
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="birthday-details">
+                                📅 ${day}/${month}/${year} • 👥 ${birthday.group_name} • ID: ${birthday.id}
+                            </div>
+                        </div>
+                        <div class="birthday-actions">
+                            <button class="btn-small ${toggleClass}" onclick="toggleBirthday(${birthday.id}, ${!birthday.enabled})">
+                                ${toggleText}
+                            </button>
+                            <button class="btn-small btn-edit" onclick="editBirthday(${birthday.id})">
+                                ✏️
+                            </button>
+                            <button class="btn-small btn-delete" onclick="deleteBirthday(${birthday.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleBirthday(id, enabled) {
+            try {
+                const response = await fetch(`${API_URL}/birthdays/${id}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`✅ Cumpleaños ${enabled ? 'activado' : 'desactivado'}`, 'success');
+                    loadBirthdays();
+                } else {
+                    showAlert('❌ Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteBirthday(id) {
+            if (!confirm('¿Estás seguro de eliminar este cumpleaños?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/birthdays/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Cumpleaños eliminado', 'success');
+                    loadBirthdays();
+                } else {
+                    showAlert('❌ Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function editBirthday(id) {
+            try {
+                const response = await fetch(`${API_URL}/birthdays/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const birthday = result.data;
+                    document.getElementById('name').value = birthday.name;
+                    document.getElementById('birth_date').value = birthday.birth_date;
+                    document.getElementById('group_id').value = birthday.group_id;
+                    document.getElementById('group_name').value = birthday.group_name;
+                    document.getElementById('message_template').value = birthday.message_template || '';
+
+                    // Cambiar comportamiento del formulario a edición
+                    const form = document.getElementById('birthdayForm');
+                    form.onsubmit = async (e) => {
+                        e.preventDefault();
+                        await updateBirthday(id);
+                        // Restaurar comportamiento original
+                        form.onsubmit = null;
+                        editingId = null;
+                    };
+
+                    showAlert('✏️ Editando cumpleaños. Modifica los campos y guarda.', 'success');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showAlert('❌ Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function updateBirthday(id) {
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                birth_date: document.getElementById('birth_date').value,
+                group_id: document.getElementById('group_id').value.trim(),
+                group_name: document.getElementById('group_name').value.trim(),
+                message_template: document.getElementById('message_template').value.trim() || null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/birthdays/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Cumpleaños actualizado correctamente', 'success');
+                    document.getElementById('birthdayForm').reset();
+                    loadBirthdays();
+                } else {
+                    showAlert('❌ Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Recargar lista cada 30 segundos
+        setInterval(loadBirthdays, 30000);
+    </script>
+</body>
+</html>

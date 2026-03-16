@@ -23,6 +23,9 @@ const config = {
 
   schedulerCheckInterval: parseInt(process.env.SCHEDULER_CHECK_INTERVAL || '1', 10),
 
+  webEnabled: process.env.WEB_ENABLED !== 'false',
+  webPort: parseInt(process.env.WEB_PORT || '3000', 10),
+
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production'
 };

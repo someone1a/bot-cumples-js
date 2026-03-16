@@ -1,9 +1,12 @@
 import config from './config/env.js';
 import { initDatabase, closeDatabase } from './config/database.js';
 import { connectToWhatsApp, disconnect } from './bot/socket.js';
+import { startWebServer } from './web/server.js';
 import logger from './utils/logger.js';
 
 process.env.TZ = config.timezone;
+
+let webServer = null;
 
 async function main() {
   try {
@@ -12,6 +15,11 @@ async function main() {
 
     initDatabase(config.dbPath);
     logger.info({ path: config.dbPath }, 'Database initialized successfully');
+
+    // Start web server
+    if (config.webEnabled !== false) {
+      webServer = startWebServer();
+    }
 
     await connectToWhatsApp();
 
@@ -49,6 +57,12 @@ async function shutdown() {
     logger.info('Shutting down...');
 
     disconnect();
+
+    if (webServer) {
+      webServer.close(() => {
+        logger.info('Web server closed');
+      });
+    }
 
     closeDatabase();
 
