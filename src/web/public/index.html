@@ -96,6 +96,67 @@
             margin-bottom: 8px;
         }
 
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-box h2 {
+            color: #128C7E;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-box button:hover {
+            background: #128C7E;
+        }
+
+        .login-error {
+            color: #dc3545;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
         .subtitle {
             color: #6c757d;
             font-size: 1rem;
@@ -356,6 +417,18 @@
     </style>
 </head>
 <body>
+    <div id="loginOverlay" class="login-overlay" style="display: none;">
+        <div class="login-box">
+            <h2>Acceso al Panel</h2>
+            <p style="color: #6c757d; text-align: center; margin-bottom: 20px;">Ingresa la contraseña para continuar</p>
+            <form id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Contraseña" required autofocus>
+                <button type="submit">Ingresar</button>
+                <div id="loginError" class="login-error">Contraseña incorrecta</div>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>🤖 WhatsApp Birthday Bot
@@ -402,14 +475,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="group_id">Group ID *</label>
-                        <input type="text" id="group_id" required placeholder="5491112345678">
+                        <label for="group_selector">Seleccionar Grupo de WhatsApp *</label>
+                        <select id="group_selector" required>
+                            <option value="">Cargando grupos...</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="group_name">Nombre del Grupo *</label>
-                        <input type="text" id="group_name" required placeholder="Familia">
-                    </div>
+                    <input type="hidden" id="group_id">
+                    <input type="hidden" id="group_name">
 
                     <div class="form-group">
                         <label for="message_template">Mensaje Personalizado (opcional)</label>
@@ -435,17 +508,80 @@
     <script>
         const API_URL = '/api';
         let editingId = null;
+        let authToken = localStorage.getItem('authToken') || '';
+        let lastQRCode = null;
 
-        // Cargar estado de conexión y cumpleaños al inicio
-        checkConnection();
-        loadBirthdays();
+        // Check authentication on page load
+        (async function() {
+            const authCheck = await fetch(`${API_URL}/auth/check`);
+            const { requiresAuth } = await authCheck.json();
 
-        // Verificar conexión cada 3 segundos
-        setInterval(checkConnection, 3000);
+            if (requiresAuth && !authToken) {
+                showLoginScreen();
+            } else {
+                initializeApp();
+            }
+        })();
+
+        function showLoginScreen() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        function hideLoginScreen() {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const result = await response.json();
+
+                if (result.valid) {
+                    authToken = password;
+                    localStorage.setItem('authToken', authToken);
+                    hideLoginScreen();
+                    initializeApp();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        function initializeApp() {
+            checkConnection();
+            loadBirthdays();
+            loadWhatsAppGroups();
+
+            // Verificar conexión cada 3 segundos
+            setInterval(checkConnection, 3000);
+        }
+
+        function getAuthHeaders() {
+            return authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+        }
 
         async function checkConnection() {
             try {
-                const response = await fetch(`${API_URL}/connection`);
+                const response = await fetch(`${API_URL}/connection`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('authToken');
+                    showLoginScreen();
+                    return;
+                }
+
                 const result = await response.json();
 
                 if (result.success) {
@@ -458,11 +594,13 @@
                         statusElement.textContent = 'Conectado';
                         statusElement.className = 'connection-status status-connected';
                         qrSection.style.display = 'none';
+                        lastQRCode = null;
                     } else {
                         statusElement.textContent = 'Desconectado';
                         statusElement.className = 'connection-status status-disconnected';
 
-                        if (qr) {
+                        if (qr && qr !== lastQRCode) {
+                            lastQRCode = qr;
                             qrSection.style.display = 'block';
                             qrCodeElement.innerHTML = '';
                             new QRCode(qrCodeElement, {
@@ -481,6 +619,47 @@
             }
         }
 
+        async function loadWhatsAppGroups() {
+            try {
+                const response = await fetch(`${API_URL}/whatsapp/groups`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (response.status === 401) {
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const selector = document.getElementById('group_selector');
+                    selector.innerHTML = '<option value="">Selecciona un grupo...</option>';
+
+                    result.data.forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = JSON.stringify({ id: group.id, name: group.name });
+                        option.textContent = `${group.name} (${group.participants} miembros)`;
+                        selector.appendChild(option);
+                    });
+                } else {
+                    const selector = document.getElementById('group_selector');
+                    selector.innerHTML = '<option value="">Bot no conectado - No hay grupos disponibles</option>';
+                }
+            } catch (error) {
+                console.error('Error loading groups:', error);
+                const selector = document.getElementById('group_selector');
+                selector.innerHTML = '<option value="">Error al cargar grupos</option>';
+            }
+        }
+
+        document.getElementById('group_selector').addEventListener('change', function() {
+            if (this.value) {
+                const groupData = JSON.parse(this.value);
+                document.getElementById('group_id').value = groupData.id;
+                document.getElementById('group_name').value = groupData.name;
+            }
+        });
+
         // Manejar envío del formulario
         document.getElementById('birthdayForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -496,7 +675,10 @@
             try {
                 const response = await fetch(`${API_URL}/birthdays`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
                     body: JSON.stringify(formData)
                 });
 
@@ -516,7 +698,9 @@
 
         async function loadBirthdays() {
             try {
-                const response = await fetch(`${API_URL}/birthdays`);
+                const response = await fetch(`${API_URL}/birthdays`, {
+                    headers: getAuthHeaders()
+                });
                 const result = await response.json();
 
                 if (result.success) {
@@ -592,7 +776,10 @@
             try {
                 const response = await fetch(`${API_URL}/birthdays/${id}/toggle`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
                     body: JSON.stringify({ enabled })
                 });
 
@@ -614,7 +801,8 @@
 
             try {
                 const response = await fetch(`${API_URL}/birthdays/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
                 });
 
                 const result = await response.json();
@@ -632,7 +820,9 @@
 
         async function editBirthday(id) {
             try {
-                const response = await fetch(`${API_URL}/birthdays/${id}`);
+                const response = await fetch(`${API_URL}/birthdays/${id}`, {
+                    headers: getAuthHeaders()
+                });
                 const result = await response.json();
 
                 if (result.success) {
@@ -675,7 +865,10 @@
             try {
                 const response = await fetch(`${API_URL}/birthdays/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
                     body: JSON.stringify(formData)
                 });
 

@@ -9,9 +9,12 @@ Un bot de WhatsApp robusto y listo para producción que envía recordatorios aut
 - ✅ Scheduler interno (sin dependencia de cron del sistema)
 - ✅ Base de datos SQLite para persistencia
 - ✅ Comandos administrativos por WhatsApp (soporta `/` y `!`)
+- ✅ **Control de acceso por números autorizados**
 - ✅ Comando simplificado: `!agregar 15/05 Juan Pérez`
 - ✅ Ver cumpleaños por fecha con indicador de pasados/próximos (`!ver-cumples`)
-- ✅ **Interfaz web moderna para gestión visual** (http://localhost:3000)
+- ✅ **Interfaz web moderna con autenticación** (http://localhost:3000)
+- ✅ **Visualización de QR en el panel web**
+- ✅ **Selector de grupos de WhatsApp (sin escribir IDs manualmente)**
 - ✅ API REST completa para integraciones
 - ✅ Configuración personalizada por grupo (hora de envío, timezone, plantillas)
 - ✅ Plantillas de mensaje customizables con emoji de robot (🤖)

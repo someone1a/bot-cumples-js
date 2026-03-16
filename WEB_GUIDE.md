@@ -1,6 +1,6 @@
 # Guía de la Interfaz Web - WhatsApp Birthday Bot
 
-El bot incluye una interfaz web moderna para gestionar cumpleaños de forma visual.
+El bot incluye una interfaz web moderna para gestionar cumpleaños de forma visual con autenticación opcional.
 
 ## 🌐 Acceso
 
@@ -12,10 +12,45 @@ http://localhost:3000
 
 Si estás en un servidor remoto, reemplaza `localhost` con la IP de tu servidor.
 
+## 🔐 Seguridad del Panel Web
+
+### Configurar Contraseña (Opcional)
+
+Para proteger tu panel web con una contraseña, edita el archivo `.env`:
+
+```bash
+WEB_PANEL_PASSWORD=tu_contraseña_segura
+```
+
+**Importante:**
+- Si dejas este campo vacío, el panel será público (sin contraseña)
+- Si estableces una contraseña, tendrás que ingresarla cada vez que accedas al panel
+- La contraseña se guarda en tu navegador usando localStorage
+- Para cerrar sesión, simplemente borra el localStorage del navegador o usa modo incógnito
+
+### Control de Acceso a Comandos del Bot
+
+Los comandos del bot están protegidos por una lista de números autorizados:
+
+```bash
+# En el archivo .env
+AUTHORIZED_NUMBERS=5491112345678,5491187654321
+```
+
+Solo los números en esta lista pueden ejecutar comandos del bot. Cualquier otro número recibirá un mensaje de "No autorizado".
+
 ## ✨ Características
+
+### 📱 Visualización del Código QR
+
+- El código QR aparece automáticamente en el panel cuando el bot no está conectado
+- Se actualiza cada 3 segundos
+- Instrucciones paso a paso para vincular WhatsApp
+- Desaparece automáticamente cuando el bot se conecta exitosamente
 
 ### 📋 Panel de Control Visual
 
+- **Indicador de conexión** en tiempo real (Conectado/Desconectado)
 - **Lista completa** de todos los cumpleaños registrados
 - **Ordenamiento** por mes y día
 - **Indicadores de estado** (Activo/Inactivo)
@@ -26,8 +61,13 @@ Si estás en un servidor remoto, reemplaza `localhost` con la IP de tu servidor.
 
 Dos formas de agregar cumpleaños:
 
-1. **Desde la interfaz web** - Formulario completo con todos los campos
+1. **Desde la interfaz web** - Formulario completo con selector de grupos de WhatsApp
 2. **Desde WhatsApp** - Comando rápido `!agregar 15/05 Juan Pérez`
+
+**Ventaja del selector de grupos:**
+- Ya no necesitas saber el ID del grupo
+- Selecciona visualmente de una lista de tus grupos de WhatsApp
+- Muestra el número de participantes de cada grupo
 
 ### ✏️ Editar Cumpleaños
 
@@ -51,15 +91,15 @@ Dos formas de agregar cumpleaños:
 
 ### Colores
 
-- **Gradiente púrpura** - Fondo moderno
+- **Gradiente verde WhatsApp** - Fondo moderno
 - **Tarjetas blancas** - Contenido limpio
 - **Badges de estado**:
-  - Verde = Activo
-  - Rojo = Inactivo
+  - Verde = Activo/Conectado
+  - Rojo = Inactivo/Desconectado
 
 ### Botones
 
-- **Azul** - Agregar nuevo
+- **Verde** - Agregar nuevo (colores de WhatsApp)
 - **Amarillo** - Editar
 - **Rojo** - Eliminar
 - **Verde/Gris** - Activar/Desactivar

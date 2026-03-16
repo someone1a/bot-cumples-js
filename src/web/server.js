@@ -16,12 +16,58 @@ const PORT = config.webPort;
 
 app.use(cors());
 app.use(express.json());
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+  if (!config.webPanelPassword) {
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Authentication required', requiresAuth: true });
+  }
+
+  const token = authHeader.substring(7);
+
+  if (token !== config.webPanelPassword) {
+    return res.status(401).json({ success: false, error: 'Invalid password', requiresAuth: true });
+  }
+
+  next();
+};
+
+// Public routes
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
+// Check if authentication is required
+app.get('/api/auth/check', (req, res) => {
+  res.json({
+    success: true,
+    requiresAuth: !!config.webPanelPassword
+  });
+});
+
+// Verify password
+app.post('/api/auth/verify', (req, res) => {
+  const { password } = req.body;
+
+  if (!config.webPanelPassword) {
+    return res.json({ success: true, valid: true });
+  }
+
+  if (password === config.webPanelPassword) {
+    return res.json({ success: true, valid: true });
+  }
+
+  res.json({ success: true, valid: false });
+});
+
+// Protected API Routes
 
 // Get all birthdays
-app.get('/api/birthdays', (req, res) => {
+app.get('/api/birthdays', requireAuth, (req, res) => {
   try {
     const birthdays = birthdayService.listBirthdays(false);
     res.json({ success: true, data: birthdays });
@@ -32,7 +78,7 @@ app.get('/api/birthdays', (req, res) => {
 });
 
 // Get birthday by ID
-app.get('/api/birthdays/:id', (req, res) => {
+app.get('/api/birthdays/:id', requireAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const birthday = birthdayService.getBirthdayDetails(id);
@@ -44,7 +90,7 @@ app.get('/api/birthdays/:id', (req, res) => {
 });
 
 // Add birthday
-app.post('/api/birthdays', (req, res) => {
+app.post('/api/birthdays', requireAuth, (req, res) => {
   try {
     const { name, birth_date, group_id, group_name, message_template } = req.body;
 
@@ -71,7 +117,7 @@ app.post('/api/birthdays', (req, res) => {
 });
 
 // Update birthday
-app.put('/api/birthdays/:id', (req, res) => {
+app.put('/api/birthdays/:id', requireAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const updates = req.body;
@@ -92,7 +138,7 @@ app.put('/api/birthdays/:id', (req, res) => {
 });
 
 // Delete birthday
-app.delete('/api/birthdays/:id', (req, res) => {
+app.delete('/api/birthdays/:id', requireAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     birthdayService.removeBirthday(id);
@@ -104,7 +150,7 @@ app.delete('/api/birthdays/:id', (req, res) => {
 });
 
 // Toggle birthday status
-app.patch('/api/birthdays/:id/toggle', (req, res) => {
+app.patch('/api/birthdays/:id/toggle', requireAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const { enabled } = req.body;
@@ -117,7 +163,7 @@ app.patch('/api/birthdays/:id/toggle', (req, res) => {
 });
 
 // Get all groups
-app.get('/api/groups', (req, res) => {
+app.get('/api/groups', requireAuth, (req, res) => {
   try {
     const groups = groupService.listAllGroups();
     res.json({ success: true, data: groups });
@@ -127,8 +173,35 @@ app.get('/api/groups', (req, res) => {
   }
 });
 
+// Get WhatsApp groups from socket
+app.get('/api/whatsapp/groups', requireAuth, async (req, res) => {
+  try {
+    const socket = await import('../bot/socket.js');
+    const sock = socket.getSocket();
+
+    if (!sock) {
+      return res.status(503).json({
+        success: false,
+        error: 'Bot not connected to WhatsApp'
+      });
+    }
+
+    const groups = await sock.groupFetchAllParticipating();
+    const groupList = Object.values(groups).map(group => ({
+      id: group.id,
+      name: group.subject,
+      participants: group.participants.length
+    }));
+
+    res.json({ success: true, data: groupList });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error getting WhatsApp groups');
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Configure group
-app.post('/api/groups/config', (req, res) => {
+app.post('/api/groups/config', requireAuth, (req, res) => {
   try {
     const { group_id, group_name, send_hour, timezone } = req.body;
 
@@ -154,7 +227,7 @@ app.post('/api/groups/config', (req, res) => {
 });
 
 // Get connection status and QR code
-app.get('/api/connection', (req, res) => {
+app.get('/api/connection', requireAuth, (req, res) => {
   try {
     const connected = isSocketConnected();
     const qr = getCurrentQR();

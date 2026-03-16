@@ -25,6 +25,7 @@ const config = {
 
   webEnabled: process.env.WEB_ENABLED !== 'false',
   webPort: parseInt(process.env.WEB_PORT || '3000', 10),
+  webPanelPassword: process.env.WEB_PANEL_PASSWORD || '',
 
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production'
