@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  whatsapp-bot:
+    build: .
+    container_name: whatsapp-birthday-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - TZ=${TZ:-America/Argentina/Cordoba}
+      - DEFAULT_TIMEZONE=${DEFAULT_TIMEZONE:-America/Argentina/Cordoba}
+      - ADMIN_NUMBERS=${ADMIN_NUMBERS}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - DB_PATH=${DB_PATH:-/app/storage/database.sqlite}
+      - SCHEDULER_CHECK_INTERVAL=${SCHEDULER_CHECK_INTERVAL:-1}
+      - WEB_ENABLED=${WEB_ENABLED:-true}
+      - WEB_PORT=${WEB_PORT:-3000}
+    volumes:
+      - ./storage:/app/storage
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
