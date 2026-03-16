@@ -101,7 +101,8 @@ echo -e "${BOLD}¿Cómo deseas instalar el bot?${NC}"
 echo "1) Docker (Recomendado - No necesitas instalar Node.js)"
 echo "2) Nativo (Node.js - Requiere Node.js 18+)"
 echo ""
-read -p "$(echo -e ${YELLOW}Selecciona una opción [1-2]: ${NC})" install_method
+echo -ne "${YELLOW}Selecciona una opción [1-2]: ${NC}"
+read install_method
 
 case $install_method in
     1)
@@ -232,7 +233,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
     echo ""
 
     while true; do
-        read -p "$(echo -e ${YELLOW}Ingresa tu número de WhatsApp: ${NC})" admin_number
+        echo -ne "${YELLOW}Ingresa tu número de WhatsApp: ${NC}"
+        read admin_number
 
         if validate_whatsapp_number "$admin_number"; then
             print_success "Número válido: $admin_number"
@@ -248,7 +250,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
     echo ""
     if ask_yes_no "¿Deseas agregar más números de administrador?"; then
         while true; do
-            read -p "$(echo -e ${YELLOW}Ingresa otro número (o presiona Enter para continuar): ${NC})" extra_number
+            echo -ne "${YELLOW}Ingresa otro número (o presiona Enter para continuar): ${NC}"
+            read extra_number
 
             if [ -z "$extra_number" ]; then
                 break
@@ -278,7 +281,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
     echo "6) Otra (ingresar manualmente)"
     echo ""
 
-    read -p "$(echo -e ${YELLOW}Selecciona tu zona horaria [1-6]: ${NC})" tz_option
+    echo -ne "${YELLOW}Selecciona tu zona horaria [1-6]: ${NC}"
+    read tz_option
 
     case $tz_option in
         1) TIMEZONE="America/Argentina/Buenos_Aires";;
@@ -287,7 +291,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
         4) TIMEZONE="America/Argentina/Salta";;
         5) TIMEZONE="America/Argentina/Ushuaia";;
         6)
-            read -p "$(echo -e ${YELLOW}Ingresa la zona horaria (ej: America/New_York): ${NC})" TIMEZONE
+            echo -ne "${YELLOW}Ingresa la zona horaria (ej: America/New_York): ${NC}"
+            read TIMEZONE
             ;;
         *) TIMEZONE="America/Argentina/Cordoba";;
     esac
@@ -305,7 +310,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
     echo "3) error (Solo errores - logs mínimos)"
     echo ""
 
-    read -p "$(echo -e ${YELLOW}Selecciona nivel de logs [1-3]: ${NC})" log_option
+    echo -ne "${YELLOW}Selecciona nivel de logs [1-3]: ${NC}"
+    read log_option
 
     case $log_option in
         1) LOG_LEVEL="info";;
@@ -327,7 +333,8 @@ if [ "$ENV_EXISTS" != "true" ]; then
     echo "Recomendación: 1 minuto (para mayor precisión en la hora de envío)"
     echo ""
 
-    read -p "$(echo -e ${YELLOW}Intervalo en minutos [1-60]: ${NC})" scheduler_interval
+    echo -ne "${YELLOW}Intervalo en minutos [1-60]: ${NC}"
+    read scheduler_interval
 
     if [[ ! "$scheduler_interval" =~ ^[0-9]+$ ]] || [ "$scheduler_interval" -lt 1 ] || [ "$scheduler_interval" -gt 60 ]; then
         print_warning "Valor inválido, usando 1 minuto"
