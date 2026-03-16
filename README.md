@@ -14,16 +14,46 @@ Un bot de WhatsApp robusto y listo para producción que envía recordatorios aut
 - ✅ Evita envíos duplicados
 - ✅ Logging completo (consola + archivo)
 - ✅ Listo para VPS/producción con PM2
+- ✅ Instalador automático e interactivo
 - ✅ Importar/exportar cumpleaños en JSON
+
+## 🚀 Instalación Rápida (Recomendado)
+
+### Instalador Automático
+
+El proyecto incluye un instalador interactivo que configura todo automáticamente:
+
+```bash
+bash install.sh
+```
+
+El instalador te guiará paso a paso:
+- ✅ Verifica requisitos (Docker o Node.js)
+- ✅ Te ayuda a obtener tu número de WhatsApp con instrucciones visuales
+- ✅ Configura zona horaria de manera intuitiva
+- ✅ Instala todas las dependencias
+- ✅ Inicia el bot automáticamente
+- ✅ Muestra el QR para vincular WhatsApp
+
+**👉 [Ver guía completa del instalador](INSTALL_GUIDE.md)**
+
+---
 
 ## 📋 Requisitos
 
+### Instalación Automática
+- Bash (incluido en Linux/macOS/WSL)
+- Docker O Node.js 18+ (el instalador te ayuda a instalarlos)
+
+### Instalación Manual
 - Node.js >= 18.x
 - npm o yarn
 - Sistema operativo: Linux (recomendado para VPS), macOS o Windows
 - WhatsApp Business o WhatsApp personal
 
-## 🚀 Instalación
+## 📖 Instalación Manual
+
+Si prefieres instalar manualmente sin el script:
 
 ### 1. Clonar o descargar el proyecto
 
