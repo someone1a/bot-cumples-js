@@ -12,7 +12,7 @@ const config = {
   timezone: process.env.TZ || 'America/Argentina/Cordoba',
   defaultTimezone: process.env.DEFAULT_TIMEZONE || 'America/Argentina/Cordoba',
 
-  adminNumbers: (process.env.ADMIN_NUMBERS || '')
+  authorizedNumbers: (process.env.AUTHORIZED_NUMBERS || process.env.ADMIN_NUMBERS || '')
     .split(',')
     .map(num => num.trim())
     .filter(num => num.length > 0),
@@ -30,8 +30,8 @@ const config = {
   isProd: process.env.NODE_ENV === 'production'
 };
 
-if (config.adminNumbers.length === 0) {
-  console.warn('⚠️  WARNING: No admin numbers configured. Bot commands will not work!');
+if (config.authorizedNumbers.length === 0) {
+  console.warn('⚠️  WARNING: No authorized numbers configured. Bot commands will not work!');
 }
 
 export default config;

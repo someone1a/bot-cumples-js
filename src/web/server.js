@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as birthdayService from '../services/birthdayService.js';
 import * as groupService from '../services/groupService.js';
+import { isSocketConnected, getCurrentQR } from '../bot/socket.js';
 import logger from '../utils/logger.js';
 import config from '../config/env.js';
 
@@ -148,6 +149,26 @@ app.post('/api/groups/config', (req, res) => {
     res.json({ success: true, message: 'Grupo configurado' });
   } catch (error) {
     logger.error({ error: error.message }, 'Error configuring group');
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get connection status and QR code
+app.get('/api/connection', (req, res) => {
+  try {
+    const connected = isSocketConnected();
+    const qr = getCurrentQR();
+
+    res.json({
+      success: true,
+      data: {
+        connected,
+        qr: qr || null,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error getting connection status');
     res.status(500).json({ success: false, error: error.message });
   }
 });

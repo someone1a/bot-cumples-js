@@ -26,8 +26,11 @@ export async function handleIncomingMessage(sock, message) {
       return;
     }
 
-    if (!isAdmin(senderNumber, config.adminNumbers)) {
-      logger.warn({ sender: senderNumber }, 'Non-admin user attempted to use command');
+    if (!isAdmin(senderNumber, config.authorizedNumbers)) {
+      logger.warn({ sender: senderNumber }, 'Unauthorized user attempted to use command');
+      await sock.sendMessage(sender, {
+        text: '❌ No tienes autorización para usar este bot.\n\nSolo usuarios autorizados pueden ejecutar comandos.'
+      });
       return;
     }
 

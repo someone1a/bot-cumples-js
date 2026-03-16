@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -33,9 +33,67 @@
         }
 
         h1 {
-            color: #667eea;
+            color: #128C7E;
             font-size: 2rem;
             margin-bottom: 10px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .qr-code {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .qr-code canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .qr-instructions {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-top: 15px;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .qr-instructions ol {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .qr-instructions li {
+            margin-bottom: 8px;
         }
 
         .subtitle {
@@ -97,7 +155,7 @@
         }
 
         button {
-            background: #667eea;
+            background: #25D366;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -110,9 +168,9 @@
         }
 
         button:hover {
-            background: #5568d3;
+            background: #128C7E;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
         }
 
         button:active {
@@ -300,9 +358,25 @@
 <body>
     <div class="container">
         <header>
-            <h1>🤖 WhatsApp Birthday Bot</h1>
+            <h1>🤖 WhatsApp Birthday Bot
+                <span id="connectionStatus" class="connection-status status-disconnected">Desconectado</span>
+            </h1>
             <p class="subtitle">Panel de Control - Gestión de Cumpleaños</p>
         </header>
+
+        <div id="qrSection" class="qr-container" style="display: none;">
+            <h2 style="color: #333; margin-bottom: 15px;">📱 Vincular WhatsApp</h2>
+            <div id="qrCode" class="qr-code"></div>
+            <div class="qr-instructions">
+                <strong>Sigue estos pasos:</strong>
+                <ol>
+                    <li>Abre WhatsApp en tu teléfono</li>
+                    <li>Ve a: <strong>Configuración > Dispositivos vinculados</strong></li>
+                    <li>Toca: <strong>'Vincular un dispositivo'</strong></li>
+                    <li>Escanea el código QR que aparece arriba</li>
+                </ol>
+            </div>
+        </div>
 
         <div class="main-content">
             <!-- Formulario -->
@@ -357,12 +431,55 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script>
         const API_URL = '/api';
         let editingId = null;
 
-        // Cargar cumpleaños al inicio
+        // Cargar estado de conexión y cumpleaños al inicio
+        checkConnection();
         loadBirthdays();
+
+        // Verificar conexión cada 3 segundos
+        setInterval(checkConnection, 3000);
+
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_URL}/connection`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const { connected, qr } = result.data;
+                    const statusElement = document.getElementById('connectionStatus');
+                    const qrSection = document.getElementById('qrSection');
+                    const qrCodeElement = document.getElementById('qrCode');
+
+                    if (connected) {
+                        statusElement.textContent = 'Conectado';
+                        statusElement.className = 'connection-status status-connected';
+                        qrSection.style.display = 'none';
+                    } else {
+                        statusElement.textContent = 'Desconectado';
+                        statusElement.className = 'connection-status status-disconnected';
+
+                        if (qr) {
+                            qrSection.style.display = 'block';
+                            qrCodeElement.innerHTML = '';
+                            new QRCode(qrCodeElement, {
+                                text: qr,
+                                width: 256,
+                                height: 256,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking connection:', error);
+            }
+        }
 
         // Manejar envío del formulario
         document.getElementById('birthdayForm').addEventListener('submit', async (e) => {

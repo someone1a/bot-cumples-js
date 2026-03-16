@@ -13,6 +13,7 @@ import { startScheduler, stopScheduler } from '../services/schedulerService.js';
 let sock = null;
 let isConnected = false;
 let shouldReconnect = true;
+let currentQR = null;
 
 export async function connectToWhatsApp() {
   try {
@@ -36,6 +37,7 @@ export async function connectToWhatsApp() {
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
+        currentQR = qr;
         console.log('\n📱 Scan this QR code with WhatsApp:\n');
         qrcode.generate(qr, { small: true });
         logger.info('QR code generated, waiting for scan...');
@@ -65,6 +67,7 @@ export async function connectToWhatsApp() {
       if (connection === 'open') {
         logger.info('✅ Connected to WhatsApp successfully!');
         isConnected = true;
+        currentQR = null;
 
         startScheduler(sock);
       }
@@ -112,4 +115,8 @@ export function disconnect() {
     sock.end(undefined);
     logger.info('Disconnected from WhatsApp');
   }
+}
+
+export function getCurrentQR() {
+  return currentQR;
 }
