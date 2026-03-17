@@ -33,10 +33,31 @@
             position: relative;
         }
 
-        .logout-btn {
+        .header-buttons {
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .change-password-btn {
+            background: #128C7E;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .change-password-btn:hover {
+            background: #0d6d5f;
+        }
+
+        .logout-btn {
             background: #dc3545;
             color: white;
             border: none;
@@ -472,9 +493,38 @@
         </div>
     </div>
 
+    <!-- Modal de cambio de contraseña -->
+    <div id="changePasswordModal" class="login-overlay" style="display: none;">
+        <div class="login-box">
+            <h2>Cambiar Contraseña</h2>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="currentPasswordChange">Contraseña Actual</label>
+                    <input type="password" id="currentPasswordChange" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPasswordChange">Nueva Contraseña</label>
+                    <input type="password" id="newPasswordChange" required minlength="4">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPasswordChange">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirmPasswordChange" required minlength="4">
+                </div>
+                <div id="changePasswordError" class="login-error"></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" style="flex: 1;">Cambiar</button>
+                    <button type="button" id="cancelChangePassword" style="flex: 1; background: #6c757d;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
         <header>
-            <button id="logoutBtn" class="logout-btn" style="display: none;">🚪 Cerrar Sesión</button>
+            <div class="header-buttons" style="display: none;" id="headerButtons">
+                <button id="changePasswordBtn" class="change-password-btn">🔑 Cambiar Contraseña</button>
+                <button id="logoutBtn" class="logout-btn">🚪 Cerrar Sesión</button>
+            </div>
             <h1>🤖 WhatsApp Birthday Bot
                 <span id="connectionStatus" class="connection-status status-disconnected">Desconectado</span>
             </h1>
@@ -609,7 +659,7 @@
 
         function hideLoginScreen() {
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('headerButtons').style.display = 'flex';
             if (qrCheckInterval) clearInterval(qrCheckInterval);
             if (qrTimerInterval) clearInterval(qrTimerInterval);
         }
@@ -1087,6 +1137,65 @@
                 alert.style.display = 'none';
             }, 5000);
         }
+
+        // Change password functionality
+        document.getElementById('changePasswordBtn').addEventListener('click', () => {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordError').style.display = 'none';
+        });
+
+        document.getElementById('cancelChangePassword').addEventListener('click', () => {
+            document.getElementById('changePasswordModal').style.display = 'none';
+        });
+
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPasswordChange').value;
+            const newPassword = document.getElementById('newPasswordChange').value;
+            const confirmPassword = document.getElementById('confirmPasswordChange').value;
+            const errorDiv = document.getElementById('changePasswordError');
+
+            errorDiv.style.display = 'none';
+
+            if (newPassword !== confirmPassword) {
+                errorDiv.textContent = 'Las contraseñas no coinciden';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (newPassword.length < 4) {
+                errorDiv.textContent = 'La contraseña debe tener al menos 4 caracteres';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Contraseña cambiada exitosamente. Por favor, inicia sesión nuevamente.');
+                    localStorage.removeItem('authToken');
+                    location.reload();
+                } else {
+                    errorDiv.textContent = result.error || 'Error al cambiar la contraseña';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Error al cambiar la contraseña: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
 
         // Recargar lista cada 30 segundos
         setInterval(loadBirthdays, 30000);

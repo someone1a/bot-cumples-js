@@ -9,6 +9,7 @@ import * as groupService from '../services/groupService.js';
 import { isSocketConnected, getCurrentQR } from '../bot/socket.js';
 import logger from '../utils/logger.js';
 import config from '../config/env.js';
+import { updateWebPanelPassword } from '../utils/passwordGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -342,6 +343,50 @@ app.get('/api/connection', requireAuth, (req, res) => {
     });
   } catch (error) {
     logger.error({ error: error.message }, 'Error getting connection status');
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Change password
+app.post('/api/auth/change-password', requireAuth, (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Se requieren currentPassword y newPassword'
+      });
+    }
+
+    if (currentPassword !== config.webPanelPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Contraseña actual incorrecta'
+      });
+    }
+
+    if (newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        error: 'La nueva contraseña debe tener al menos 4 caracteres'
+      });
+    }
+
+    updateWebPanelPassword(newPassword);
+
+    config.webPanelPassword = newPassword;
+
+    activeSessions.clear();
+
+    logger.info('Password changed successfully');
+
+    res.json({
+      success: true,
+      message: 'Contraseña actualizada correctamente. Por favor, inicia sesión nuevamente.'
+    });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error changing password');
     res.status(500).json({ success: false, error: error.message });
   }
 });

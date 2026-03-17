@@ -21,9 +21,10 @@ export function generateSecurePassword(length = 16) {
 
 export function ensureWebPanelPassword() {
   const envPath = path.join(__dirname, '../../.env');
+  const defaultPassword = '1234';
 
   if (!fs.existsSync(envPath)) {
-    return null;
+    return defaultPassword;
   }
 
   let envContent = fs.readFileSync(envPath, 'utf8');
@@ -34,7 +35,30 @@ export function ensureWebPanelPassword() {
     return passwordMatch[1].trim();
   }
 
-  const newPassword = generateSecurePassword(20);
+  if (passwordMatch) {
+    envContent = envContent.replace(
+      /^WEB_PANEL_PASSWORD=.*$/m,
+      `WEB_PANEL_PASSWORD=${defaultPassword}`
+    );
+  } else {
+    envContent += `\nWEB_PANEL_PASSWORD=${defaultPassword}\n`;
+  }
+
+  fs.writeFileSync(envPath, envContent, 'utf8');
+
+  return defaultPassword;
+}
+
+export function updateWebPanelPassword(newPassword) {
+  const envPath = path.join(__dirname, '../../.env');
+
+  if (!fs.existsSync(envPath)) {
+    throw new Error('.env file not found');
+  }
+
+  let envContent = fs.readFileSync(envPath, 'utf8');
+
+  const passwordMatch = envContent.match(/^WEB_PANEL_PASSWORD=(.*)$/m);
 
   if (passwordMatch) {
     envContent = envContent.replace(
@@ -47,5 +71,5 @@ export function ensureWebPanelPassword() {
 
   fs.writeFileSync(envPath, envContent, 'utf8');
 
-  return newPassword;
+  return true;
 }
