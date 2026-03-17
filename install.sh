@@ -407,6 +407,29 @@ elif [ "$INSTALL_TYPE" == "native" ]; then
 
     print_success "Dependencias instaladas"
 
+    # Instalar PM2 globalmente
+    print_step "Instalando PM2 (administrador de procesos)..."
+
+    if ! command -v pm2 &> /dev/null; then
+        if command -v sudo &> /dev/null; then
+            sudo npm install -g pm2
+        else
+            npm install -g pm2
+        fi
+        print_success "PM2 instalado correctamente"
+    else
+        print_success "PM2 ya está instalado: $(pm2 -v)"
+    fi
+
+    # Preguntar si desea configurar PM2 para inicio automático
+    echo ""
+    if ask_yes_no "¿Deseas configurar PM2 para que el bot inicie automáticamente al reiniciar el servidor?"; then
+        print_step "Configurando PM2 startup..."
+        pm2 startup | tail -n 1 | grep -o 'sudo.*' | sh || true
+        print_success "PM2 configurado para inicio automático"
+        print_info "Recuerda ejecutar 'pm2 save' después de iniciar el bot"
+    fi
+
     echo ""
     echo -e "${GREEN}${BOLD}✓ Instalación completada con éxito!${NC}"
     echo ""
@@ -438,7 +461,15 @@ sleep 2
 if [ "$INSTALL_TYPE" == "docker" ]; then
     docker-compose logs -f
 else
-    npm start
+    # Si PM2 está instalado, usar PM2
+    if command -v pm2 &> /dev/null; then
+        print_info "Iniciando bot con PM2..."
+        npm run pm2:start
+        sleep 2
+        npm run pm2:logs
+    else
+        npm start
+    fi
 fi
 
 # Este código no se ejecutará hasta que el usuario presione Ctrl+C
