@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import QRCode from 'qrcode';
+import crypto from 'crypto';
 import * as birthdayService from '../services/birthdayService.js';
 import * as groupService from '../services/groupService.js';
 import { isSocketConnected, getCurrentQR } from '../bot/socket.js';
@@ -13,6 +15,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = config.webPort;
+
+// Session management
+const activeSessions = new Map(); // sessionId -> { token, expiresAt, validated }
+const pendingQRs = new Map(); // qrId -> { sessionId, expiresAt }
 
 app.use(cors());
 app.use(express.json());
@@ -27,11 +33,19 @@ const requireAuth = (req, res, next) => {
 
   const token = authHeader.substring(7);
 
-  if (token !== config.webPanelPassword) {
-    return res.status(401).json({ success: false, error: 'Invalid password', requiresAuth: true });
+  // Check if it's the master password
+  if (token === config.webPanelPassword) {
+    return next();
   }
 
-  next();
+  // Check if it's a valid session token
+  for (const [sessionId, session] of activeSessions.entries()) {
+    if (session.token === token && session.validated && session.expiresAt > Date.now()) {
+      return next();
+    }
+  }
+
+  return res.status(401).json({ success: false, error: 'Invalid or expired token', requiresAuth: true });
 };
 
 // Public routes
@@ -54,6 +68,100 @@ app.post('/api/auth/verify', (req, res) => {
   }
 
   res.json({ success: true, valid: false });
+});
+
+// Generate QR code for login
+app.post('/api/auth/qr/generate', async (req, res) => {
+  try {
+    const sessionId = crypto.randomBytes(16).toString('hex');
+    const qrId = crypto.randomBytes(8).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Create session (not validated yet)
+    activeSessions.set(sessionId, {
+      token,
+      validated: false,
+      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+    });
+
+    // Create QR mapping
+    pendingQRs.set(qrId, {
+      sessionId,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
+    // Generate QR code URL
+    const qrData = `${req.protocol}://${req.get('host')}/api/auth/qr/validate/${qrId}?password=${config.webPanelPassword}`;
+    const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 300 });
+
+    logger.info({ sessionId, qrId }, 'QR code generated for login');
+
+    res.json({
+      success: true,
+      data: {
+        qrCode: qrCodeDataURL,
+        sessionId,
+        expiresIn: 300000 // 5 minutes in ms
+      }
+    });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error generating QR code');
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Validate QR code (when scanned)
+app.get('/api/auth/qr/validate/:qrId', (req, res) => {
+  const { qrId } = req.params;
+  const { password } = req.query;
+
+  const qrData = pendingQRs.get(qrId);
+
+  if (!qrData) {
+    return res.status(404).send('<html><body><h1>QR Code no válido o expirado</h1></body></html>');
+  }
+
+  if (qrData.expiresAt < Date.now()) {
+    pendingQRs.delete(qrId);
+    return res.status(410).send('<html><body><h1>QR Code expirado</h1></body></html>');
+  }
+
+  if (password !== config.webPanelPassword) {
+    return res.status(401).send('<html><body><h1>Contraseña incorrecta</h1></body></html>');
+  }
+
+  // Validate the session
+  const session = activeSessions.get(qrData.sessionId);
+  if (session) {
+    session.validated = true;
+    session.expiresAt = Date.now() + 24 * 60 * 60 * 1000; // Extend to 24 hours
+    pendingQRs.delete(qrId);
+    logger.info({ sessionId: qrData.sessionId }, 'QR code validated successfully');
+  }
+
+  res.send('<html><body><h1 style="color: green;">✓ Autenticación exitosa</h1><p>Puedes cerrar esta ventana</p></body></html>');
+});
+
+// Check session status
+app.get('/api/auth/session/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  const session = activeSessions.get(sessionId);
+
+  if (!session) {
+    return res.json({ success: true, validated: false, expired: true });
+  }
+
+  if (session.expiresAt < Date.now()) {
+    activeSessions.delete(sessionId);
+    return res.json({ success: true, validated: false, expired: true });
+  }
+
+  res.json({
+    success: true,
+    validated: session.validated,
+    expired: false,
+    token: session.validated ? session.token : null
+  });
 });
 
 // Protected API Routes

@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.3.0] - 2024-03-17
+
+### Nuevas Características
+
+- ✅ **Autenticación con Código QR**
+  - Login con código QR para acceso rápido al panel web
+  - Escanea el código con tu móvil y accede instantáneamente
+  - Sesiones de 24 horas con tokens seguros
+  - Temporizador de expiración de 5 minutos
+  - Alternativa de login con contraseña manual
+  - Cambio dinámico entre QR y contraseña
+
+- ✅ **Visualización de Group IDs en Panel Web**
+  - Lista completa de grupos de WhatsApp con sus IDs
+  - Información detallada: nombre, ID y número de participantes
+  - IDs en formato copiable para uso en comandos
+  - Actualización automática al conectar el bot
+
+- ✅ **Mejoras de Seguridad**
+  - Sistema de sesiones con tokens únicos
+  - Validación de tokens en servidor
+  - Sesiones temporales con expiración automática
+  - Soporte para múltiples métodos de autenticación
+
+### Documentación
+
+- Actualizado WEB_GUIDE.md con sistema de autenticación QR
+- Añadida sección sobre lista de grupos y Group IDs
+- Actualizado README.md con nuevas características
+- Documentación de API para endpoints de autenticación
+
 ## [1.2.0] - 2024-03-16
 
 ### Nuevas Características

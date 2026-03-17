@@ -14,14 +14,34 @@ Si estás en un servidor remoto, reemplaza `localhost` con la IP de tu servidor.
 
 ## 🔐 Seguridad del Panel Web
 
-### Contraseña Obligatoria
+### Autenticación con Código QR
 
 **El panel web SIEMPRE requiere autenticación para proteger tus datos.**
 
-Al iniciar el bot por primera vez:
-1. Se genera automáticamente una contraseña segura aleatoria
-2. La contraseña se muestra en la consola al iniciar
-3. La contraseña se guarda en el archivo `.env` como `WEB_PANEL_PASSWORD`
+El bot ofrece DOS métodos de autenticación:
+
+#### 1. Código QR (Recomendado)
+
+Al abrir el panel web, se mostrará automáticamente un código QR:
+
+1. Escanea el código QR con tu teléfono
+2. El código contiene un enlace seguro con tu contraseña
+3. Al abrir el enlace, se validará automáticamente tu sesión
+4. El código QR expira en 5 minutos
+5. Tu sesión durará 24 horas desde la autenticación
+
+**Ventajas del QR:**
+- No necesitas escribir la contraseña manualmente
+- Más rápido y cómodo desde el móvil
+- La sesión se valida automáticamente
+
+#### 2. Contraseña Manual (Alternativa)
+
+Si prefieres usar contraseña:
+
+1. Haz clic en "Usar contraseña en su lugar"
+2. Ingresa la contraseña generada automáticamente
+3. La contraseña se guarda en tu navegador para futuros accesos
 
 **Ver tu contraseña:**
 ```bash
@@ -34,14 +54,18 @@ Edita el archivo `.env` y cambia el valor de `WEB_PANEL_PASSWORD`:
 WEB_PANEL_PASSWORD=tu_nueva_contraseña_segura
 ```
 
+### Gestión de Sesión
+
 **Cerrar sesión:**
 - Usa el botón "🚪 Cerrar Sesión" en la esquina superior derecha del panel
-- También puedes usar modo incógnito del navegador para no guardar la contraseña
+- También puedes usar modo incógnito del navegador para no guardar la sesión
 
 **Importante:**
-- La contraseña es OBLIGATORIA y no puede estar vacía
-- Se guarda en tu navegador usando localStorage después del primer login
+- La autenticación es OBLIGATORIA, no puede desactivarse
+- El código QR contiene tu contraseña de forma segura
+- Las sesiones QR duran 24 horas desde la autenticación
 - Si pierdes la contraseña, puedes verla en el archivo `.env`
+- Puedes alternar entre QR y contraseña en cualquier momento
 
 ### Control de Acceso a Comandos del Bot
 
@@ -83,6 +107,22 @@ Dos formas de agregar cumpleaños:
 - Ya no necesitas saber el ID del grupo
 - Selecciona visualmente de una lista de tus grupos de WhatsApp
 - Muestra el número de participantes de cada grupo
+
+### 📱 Lista de Grupos de WhatsApp
+
+El panel web muestra una lista completa de todos tus grupos de WhatsApp con información detallada:
+
+- **Nombre del grupo**
+- **ID del grupo** (útil para usar en comandos directos)
+- **Número de participantes**
+
+Esta lista aparece debajo del formulario de agregar cumpleaños y se actualiza automáticamente cuando el bot se conecta.
+
+**Cómo copiar un Group ID:**
+1. Busca el grupo en la lista
+2. El ID aparece en formato de código (fondo blanco)
+3. Puedes copiar el ID directamente desde ahí
+4. Útil si necesitas usar comandos desde WhatsApp como `!agregar 15/05 Juan Pérez [GROUP_ID]`
 
 ### ✏️ Editar Cumpleaños
 
