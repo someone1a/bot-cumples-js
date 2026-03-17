@@ -30,6 +30,26 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             margin-bottom: 30px;
             text-align: center;
+            position: relative;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
         }
 
         h1 {
@@ -431,6 +451,7 @@
 
     <div class="container">
         <header>
+            <button id="logoutBtn" class="logout-btn" style="display: none;">🚪 Cerrar Sesión</button>
             <h1>🤖 WhatsApp Birthday Bot
                 <span id="connectionStatus" class="connection-status status-disconnected">Desconectado</span>
             </h1>
@@ -516,11 +537,34 @@
             const authCheck = await fetch(`${API_URL}/auth/check`);
             const { requiresAuth } = await authCheck.json();
 
-            if (requiresAuth && !authToken) {
-                showLoginScreen();
-            } else {
+            if (!requiresAuth) {
                 initializeApp();
+                return;
             }
+
+            // If auth is required, verify the stored token
+            if (authToken) {
+                try {
+                    const verifyResponse = await fetch(`${API_URL}/auth/verify`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: authToken })
+                    });
+                    const verifyResult = await verifyResponse.json();
+
+                    if (verifyResult.valid) {
+                        initializeApp();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error verifying token:', error);
+                }
+            }
+
+            // Show login if no token or invalid token
+            localStorage.removeItem('authToken');
+            authToken = '';
+            showLoginScreen();
         })();
 
         function showLoginScreen() {
@@ -529,7 +573,17 @@
 
         function hideLoginScreen() {
             document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
         }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.removeItem('authToken');
+                authToken = '';
+                location.reload();
+            }
+        });
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();

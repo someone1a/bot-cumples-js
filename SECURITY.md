@@ -59,6 +59,10 @@ nano .env
 WEB_PANEL_PASSWORD=tu_nueva_contraseña_super_segura_123!
 ```
 
+**Cerrar sesión:**
+- Usa el botón "🚪 Cerrar Sesión" en la esquina superior derecha del panel
+- También puedes usar modo incógnito para no guardar la contraseña
+
 **Recomendaciones:**
 - Usa una contraseña fuerte (mínimo 16 caracteres)
 - Incluye mayúsculas, minúsculas, números y símbolos

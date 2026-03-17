@@ -34,10 +34,13 @@ Edita el archivo `.env` y cambia el valor de `WEB_PANEL_PASSWORD`:
 WEB_PANEL_PASSWORD=tu_nueva_contraseña_segura
 ```
 
+**Cerrar sesión:**
+- Usa el botón "🚪 Cerrar Sesión" en la esquina superior derecha del panel
+- También puedes usar modo incógnito del navegador para no guardar la contraseña
+
 **Importante:**
 - La contraseña es OBLIGATORIA y no puede estar vacía
 - Se guarda en tu navegador usando localStorage después del primer login
-- Para cerrar sesión, borra el localStorage del navegador o usa modo incógnito
 - Si pierdes la contraseña, puedes verla en el archivo `.env`
 
 ### Control de Acceso a Comandos del Bot
