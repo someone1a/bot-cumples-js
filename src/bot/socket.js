@@ -38,8 +38,11 @@ export async function connectToWhatsApp() {
 
       if (qr) {
         currentQR = qr;
-        console.log('\n📱 Scan this QR code with WhatsApp:\n');
-        qrcode.generate(qr, { small: true });
+        console.log('\n========================================');
+        console.log('📱 Scan this QR code with WhatsApp:');
+        console.log('========================================\n');
+        qrcode.generate(qr, { small: false });
+        console.log('\n========================================');
         logger.info('QR code generated, waiting for scan...');
       }
 
