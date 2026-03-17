@@ -1,11 +1,14 @@
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { ensureWebPanelPassword } from '../utils/passwordGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '../../.env') });
+
+const webPassword = ensureWebPanelPassword();
 
 const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -25,7 +28,7 @@ const config = {
 
   webEnabled: process.env.WEB_ENABLED !== 'false',
   webPort: parseInt(process.env.WEB_PORT || '3000', 10),
-  webPanelPassword: process.env.WEB_PANEL_PASSWORD || '',
+  webPanelPassword: webPassword,
 
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production'

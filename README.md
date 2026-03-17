@@ -12,7 +12,7 @@ Un bot de WhatsApp robusto y listo para producción que envía recordatorios aut
 - ✅ **Control de acceso por números autorizados**
 - ✅ Comando simplificado: `!agregar 15/05 Juan Pérez`
 - ✅ Ver cumpleaños por fecha con indicador de pasados/próximos (`!ver-cumples`)
-- ✅ **Interfaz web moderna con autenticación** (http://localhost:3000)
+- ✅ **Interfaz web moderna con autenticación obligatoria** (http://localhost:3000)
 - ✅ **Visualización de QR en el panel web**
 - ✅ **Selector de grupos de WhatsApp (sin escribir IDs manualmente)**
 - ✅ API REST completa para integraciones
@@ -47,6 +47,7 @@ El instalador te guiará paso a paso:
 
 ## 📚 Documentación
 
+- **[Guía de Seguridad](SECURITY.md)** - Configuración de seguridad y mejores prácticas
 - **[Guía de Instalación](INSTALL_GUIDE.md)** - Instalador automático paso a paso
 - **[Guía de Docker](DOCKER_GUIDE.md)** - Configuración y despliegue con Docker
 - **[Guía de Interfaz Web](WEB_GUIDE.md)** - Panel web y API REST

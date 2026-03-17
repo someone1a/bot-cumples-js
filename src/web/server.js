@@ -19,10 +19,6 @@ app.use(express.json());
 
 // Authentication middleware
 const requireAuth = (req, res, next) => {
-  if (!config.webPanelPassword) {
-    return next();
-  }
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -45,17 +41,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/auth/check', (req, res) => {
   res.json({
     success: true,
-    requiresAuth: !!config.webPanelPassword
+    requiresAuth: true
   });
 });
 
 // Verify password
 app.post('/api/auth/verify', (req, res) => {
   const { password } = req.body;
-
-  if (!config.webPanelPassword) {
-    return res.json({ success: true, valid: true });
-  }
 
   if (password === config.webPanelPassword) {
     return res.json({ success: true, valid: true });
@@ -256,6 +248,10 @@ export function startWebServer() {
     logger.info({ port: PORT }, '🌐 Web server started');
     console.log(`\n🌐 Panel web disponible en: http://localhost:${PORT}`);
     console.log(`📊 API disponible en: http://localhost:${PORT}/api`);
+    console.log(`\n🔐 CONTRASEÑA DEL PANEL WEB:`);
+    console.log(`   ${config.webPanelPassword}`);
+    console.log(`\n⚠️  Guarda esta contraseña en un lugar seguro.`);
+    console.log(`   También está en el archivo .env (WEB_PANEL_PASSWORD)`);
   });
 
   return server;

@@ -14,19 +14,31 @@ Si estás en un servidor remoto, reemplaza `localhost` con la IP de tu servidor.
 
 ## 🔐 Seguridad del Panel Web
 
-### Configurar Contraseña (Opcional)
+### Contraseña Obligatoria
 
-Para proteger tu panel web con una contraseña, edita el archivo `.env`:
+**El panel web SIEMPRE requiere autenticación para proteger tus datos.**
 
+Al iniciar el bot por primera vez:
+1. Se genera automáticamente una contraseña segura aleatoria
+2. La contraseña se muestra en la consola al iniciar
+3. La contraseña se guarda en el archivo `.env` como `WEB_PANEL_PASSWORD`
+
+**Ver tu contraseña:**
 ```bash
-WEB_PANEL_PASSWORD=tu_contraseña_segura
+cat .env | grep WEB_PANEL_PASSWORD
+```
+
+**Cambiar la contraseña:**
+Edita el archivo `.env` y cambia el valor de `WEB_PANEL_PASSWORD`:
+```bash
+WEB_PANEL_PASSWORD=tu_nueva_contraseña_segura
 ```
 
 **Importante:**
-- Si dejas este campo vacío, el panel será público (sin contraseña)
-- Si estableces una contraseña, tendrás que ingresarla cada vez que accedas al panel
-- La contraseña se guarda en tu navegador usando localStorage
-- Para cerrar sesión, simplemente borra el localStorage del navegador o usa modo incógnito
+- La contraseña es OBLIGATORIA y no puede estar vacía
+- Se guarda en tu navegador usando localStorage después del primer login
+- Para cerrar sesión, borra el localStorage del navegador o usa modo incógnito
+- Si pierdes la contraseña, puedes verla en el archivo `.env`
 
 ### Control de Acceso a Comandos del Bot
 
