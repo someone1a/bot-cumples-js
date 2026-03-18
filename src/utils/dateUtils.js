@@ -91,5 +91,5 @@ export function getCurrentHourInTimezone(timezone) {
 
 export function isTimeToSend(sendHour, timezone) {
   const currentHour = getCurrentHourInTimezone(timezone);
-  return currentHour === sendHour;
+  return currentHour >= sendHour;
 }
