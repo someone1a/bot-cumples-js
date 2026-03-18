@@ -22,7 +22,7 @@ export async function handleIncomingMessage(sock, message) {
       'Message received'
     );
 
-    if (!messageText.startsWith('/')) {
+    if (!messageText.startsWith('/') && !messageText.startsWith('!')) {
       return;
     }
 
