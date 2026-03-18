@@ -17,7 +17,11 @@ export async function sendBirthdayMessage(sock, birthday, isTest = false) {
 
     const message = renderTemplate(template, birthday);
 
-    const jid = `${birthday.group_id}@g.us`;
+    // El group_id puede venir con o sin @g.us, normalizamos
+    let jid = birthday.group_id;
+    if (!jid.includes('@')) {
+      jid = `${jid}@g.us`;
+    }
 
     await sock.sendMessage(jid, { text: message });
 
